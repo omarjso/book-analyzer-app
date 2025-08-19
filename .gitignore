@@ -9,6 +9,7 @@ venv/
 node_modules/
 dist/
 .DS_Store
+tailwind.css
 
 # uv
 uv.lock

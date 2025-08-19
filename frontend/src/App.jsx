@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import gutenbergLogo from './assets/pg-logo.png'
-import './App.css';
 
 function App() {
     const [bookId, setBookId] = useState('');
@@ -35,15 +34,23 @@ function App() {
     };
 
     return (
-        <main className="container">
-            <div>
-                <a href="https://www.gutenberg.org/" target="_blank">
-                    <img src={gutenbergLogo} alt="Project Gutenberg" />
+        <main className="mx-auto max-w-xl p-6 space-y-6">
+            <div className="text-center">
+                <a href="https://www.gutenberg.org/" target="_blank" rel="noreferrer">
+                    <img src={gutenbergLogo} alt="Project Gutenberg" className="w-1/2 inline-block" />
                 </a>
             </div>
-            <h1>Book Graph Analyzer</h1>
-            <form onSubmit={handleSubmit} className="card">
-                <label htmlFor="bookId">Project Gutenberg Book ID</label>
+
+            <h1 className="text-xl font-semibold text-center">Book Graph Analyzer</h1>
+
+            <form
+                onSubmit={handleSubmit}
+                className="space-y-3 rounded-lg bg-red-950 p-6 shadow-md"
+            >
+                <label htmlFor="bookId" className="block font-medium">
+                    Project Gutenberg Book ID
+                </label>
+
                 <input
                     id="bookId"
                     type="text"
@@ -51,28 +58,36 @@ function App() {
                     value={bookId}
                     onChange={(e) => setBookId(e.target.value)}
                     disabled={loading}
+                    className="w-full rounded border px-3 py-2 focus:outline-none focus:ring-2"
                 />
-                <button type="submit" disabled={loading}>
+
+                <button
+                    type="submit"
+                    disabled={loading}
+                    className="mx-auto block rounded bg-red-300 px-4 py-2 text-white disabled:opacity-60"
+                >
                     {loading ? 'Analyzing…' : 'Analyze'}
                 </button>
             </form>
 
             {error && (
-                <div className="card error">
+                <div className="rounded border p-3">
                     <strong>Error:</strong> {error}
                 </div>
             )}
 
             {results && (
-                <div className="card">
-                    <h2>Results</h2>
+                <div
+                    className="space-y-3 rounded-lg bg-red-950 p-6 shadow-md"
+                >
+                    <h2 className="text-lg font-medium">Results</h2>
                     <p>
                         Nodes: <strong>{results.nodes?.length ?? 0}</strong> • Links:{' '}
                         <strong>{results.links?.length ?? 0}</strong>
                     </p>
                     <details>
-                        <summary>Show raw JSON</summary>
-                        <pre style={{ overflowX: 'auto' }}>
+                        <summary className="cursor-pointer">Show raw JSON</summary>
+                        <pre className="max-h-[50vh] overflow-auto text-sm">
                             {JSON.stringify(results, null, 2)}
                         </pre>
                     </details>
