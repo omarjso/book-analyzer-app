@@ -1,22 +1,77 @@
 @import "tailwindcss";
 
+/* ---------- Theme tokens (dark default) ---------- */
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
+  --bg:         #242424;                 /* page background */
+  --fg:         rgba(255, 255, 255, .87);/* default text    */
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+  --card:       #450a0a;                 /* deep red card background (≈ red-950) */
+  --card-fg:    #f1f5f9;                 /* card text (≈ slate-100) */
+  --card-brd:   #7f1d1d;                 /* card border (≈ red-800) */
 
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  --primary:    #fca5a5;                 /* button bg (≈ red-300) */
+  --primary-fg: #111827;                 /* button text (≈ gray-900) */
+  --ring:       #f87171;                 /* focus ring (≈ red-400) */
 }
 
-body {
-  margin: 0;
-  min-width: 320px;
-  min-height: 100vh;
+/* ---------- Light theme ---------- */
+html.theme-light {
+  --bg:         #ffffff;                 /* white page bg */
+  --fg:         #213547;                 /* dark gray text */
+
+  --card:       #fef2f2;                 /* very light red (≈ red-50) */
+  --card-fg:    #7f1d1d;                 /* deep red text (≈ red-800) */
+  --card-brd:   #fecaca;                 /* soft red border (≈ red-200) */
+
+  --primary:    #dc2626;                 /* strong red (≈ red-600) */
+  --primary-fg: #ffffff;                 /* white button text */
+  --ring:       #f87171;                 /* red-400 ring */
+}
+
+/* ---------- Base styles ---------- */
+@layer base {
+  body {
+    @apply m-0 min-h-screen;
+    /* add this line to fully match your old file */
+    min-width: 320px;
+
+    background: var(--bg);
+    color: var(--fg);
+
+    font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+    line-height: 1.5;
+    font-weight: 400;
+
+    color-scheme: light dark;
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+/* ---------- Semantic components ---------- */
+@layer components {
+  .card {
+    @apply rounded-lg border p-6 shadow-md;
+    background: var(--card);
+    color: var(--card-fg);
+    border-color: var(--card-brd);
+  }
+
+  .btn {
+    @apply rounded px-4 py-2 font-medium hover:opacity-90
+           focus:outline-none focus:ring-2 disabled:opacity-60;
+    background: var(--primary);
+    color: var(--primary-fg);
+    --tw-ring-color: var(--ring);
+  }
+
+  .input {
+    @apply w-full rounded border px-3 py-2 focus:outline-none focus:ring-2;
+    background: #141414;        /* subtle field bg on dark */
+    color: var(--fg);
+    border-color: #2a2a2a;
+    --tw-ring-color: var(--ring);
+  }
 }

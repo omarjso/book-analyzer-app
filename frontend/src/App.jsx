@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import gutenbergLogo from './assets/pg-logo.png'
+import { useState } from 'react';
+import gutenbergLogo from './assets/pg-logo.png';
 
 function App() {
     const [bookId, setBookId] = useState('');
@@ -22,9 +22,7 @@ function App() {
             setLoading(true);
             const res = await fetch(`http://127.0.0.1:5001/api/analyze/${id}`);
             const data = await res.json();
-            if (!res.ok || data.error) {
-                throw new Error(data.error || 'Failed to analyze the book.');
-            }
+            if (!res.ok || data.error) throw new Error(data.error || 'Failed to analyze the book.');
             setResults(data); // { nodes: [...], links: [...] }
         } catch (err) {
             setError(err.message || 'Something went wrong.');
@@ -43,10 +41,7 @@ function App() {
 
             <h1 className="text-xl font-semibold text-center">Book Graph Analyzer</h1>
 
-            <form
-                onSubmit={handleSubmit}
-                className="space-y-3 rounded-lg bg-red-950 p-6 shadow-md"
-            >
+            <form onSubmit={handleSubmit} className="card space-y-3">
                 <label htmlFor="bookId" className="block font-medium">
                     Project Gutenberg Book ID
                 </label>
@@ -58,13 +53,13 @@ function App() {
                     value={bookId}
                     onChange={(e) => setBookId(e.target.value)}
                     disabled={loading}
-                    className="w-full rounded border px-3 py-2 focus:outline-none focus:ring-2"
+                    className="input"
                 />
 
                 <button
                     type="submit"
                     disabled={loading}
-                    className="mx-auto block rounded bg-red-300 px-4 py-2 text-white disabled:opacity-60"
+                    className="btn mx-auto block"
                 >
                     {loading ? 'Analyzing…' : 'Analyze'}
                 </button>
@@ -77,10 +72,7 @@ function App() {
             )}
 
             {results && (
-                <div
-                    className="space-y-3 rounded-lg bg-red-950 p-6 shadow-md"
-                >
-                    <h2 className="text-lg font-medium">Results</h2>
+                <div className="card space-y-4">
                     <p>
                         Nodes: <strong>{results.nodes?.length ?? 0}</strong> • Links:{' '}
                         <strong>{results.links?.length ?? 0}</strong>
