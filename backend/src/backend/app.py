@@ -4,6 +4,7 @@ from collections import Counter
 import requests
 from flask import Flask, jsonify, Response
 from flask_cors import CORS
+from flask_caching import Cache
 
 from backend.analyzer import analyze_chunk
 
@@ -18,6 +19,7 @@ def metadata_url(book_id):
 
 app = Flask(__name__)
 CORS(app)
+cache = Cache(app, config={"CACHE_TYPE": "SimpleCache"})
 
 
 @app.route("/api/health")
@@ -27,6 +29,7 @@ def health_check():
 
 
 @app.route("/api/book/<int:book_id>")
+@cache.cached(timeout=3600)
 def get_book(book_id) -> Response:
     try:
         r = requests.get(content_url(book_id))
@@ -41,6 +44,7 @@ def get_book(book_id) -> Response:
 
 
 @app.route("/api/analyze/<int:book_id>")
+@cache.cached(timeout=86400)
 def analyze_book(book_id) -> Response:
     resp = get_book(book_id)
     if resp.status_code != 200:
