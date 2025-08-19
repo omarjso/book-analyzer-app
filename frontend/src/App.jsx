@@ -33,6 +33,7 @@ function App() {
 
     return (
         <main className="mx-auto max-w-xl p-6 space-y-6">
+            <ThemeToggle />
             <div className="text-center">
                 <a href="https://www.gutenberg.org/" target="_blank" rel="noreferrer">
                     <img src={gutenbergLogo} alt="Project Gutenberg" className="w-1/2 inline-block" />

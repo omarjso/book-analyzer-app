@@ -2,30 +2,42 @@
 
 /* ---------- Theme tokens (dark default) ---------- */
 :root {
-  --bg:         #242424;                 /* page background */
-  --fg:         rgba(255, 255, 255, .87);/* default text    */
+  --bg-dark:    #242424;
+  --bg-light:   #ffffff;
 
-  --card:       #450a0a;                 /* deep red card background (≈ red-950) */
-  --card-fg:    #f1f5f9;                 /* card text (≈ slate-100) */
-  --card-brd:   #7f1d1d;                 /* card border (≈ red-800) */
+  --bg:         #242424;
+  --fg:         rgba(255, 255, 255, .87);
 
-  --primary:    #fca5a5;                 /* button bg (≈ red-300) */
-  --primary-fg: #111827;                 /* button text (≈ gray-900) */
-  --ring:       #f87171;                 /* focus ring (≈ red-400) */
+  --card:       #450a0a;
+  --card-fg:    #f1f5f9;
+  --card-brd:   #7f1d1d;
+
+  --primary:    #fca5a5;
+  --primary-fg: #111827;
+  --ring:       #f87171;
+
+  --input-bg:   #141414;
+  --input-brd:  #2a2a2a;
+  --input-fg:   rgba(255,255,255,.92);
+  --placeholder: rgba(255,255,255,.55);
 }
 
 /* ---------- Light theme ---------- */
 html.theme-light {
-  --bg:         #ffffff;                 /* white page bg */
-  --fg:         #213547;                 /* dark gray text */
+  --bg:         #ffffff;
+  --fg:         #213547;
 
-  --card:       #fef2f2;                 /* very light red (≈ red-50) */
-  --card-fg:    #7f1d1d;                 /* deep red text (≈ red-800) */
-  --card-brd:   #fecaca;                 /* soft red border (≈ red-200) */
+  --card:       #fef2f2;
+  --card-fg:    #7f1d1d;
+  --card-brd:   #fecaca;
 
-  --primary:    #dc2626;                 /* strong red (≈ red-600) */
-  --primary-fg: #ffffff;                 /* white button text */
-  --ring:       #f87171;                 /* red-400 ring */
+  --primary:    #dc2626;
+  --primary-fg: #ffffff;
+  --ring:       #f87171;
+  --input-bg:   #f9fafb;
+  --input-brd:  #e5e7eb;
+  --input-fg:   #213547;
+  --placeholder:#94a3b8;
 }
 
 /* ---------- Base styles ---------- */
@@ -69,9 +81,14 @@ html.theme-light {
 
   .input {
     @apply w-full rounded border px-3 py-2 focus:outline-none focus:ring-2;
-    background: #141414;        /* subtle field bg on dark */
-    color: var(--fg);
-    border-color: #2a2a2a;
+    background: var(--input-bg);
+    color: var(--input-fg);
+    border-color: var(--input-brd);
+    caret-color: var(--input-fg);
     --tw-ring-color: var(--ring);
+  }
+  .input::placeholder {
+    color: var(--placeholder);
+    opacity: 1; /* ensure the color you set is used */
   }
 }
