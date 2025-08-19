@@ -1,7 +1,7 @@
 import json
 import pytest
 import os
-from analyzer import analyze_chunk
+from backend.analyzer import analyze_chunk
 
 
 @pytest.mark.integration

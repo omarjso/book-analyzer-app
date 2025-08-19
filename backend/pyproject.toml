@@ -1,3 +1,7 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "backend"
 version = "0.1.0"
@@ -10,7 +14,7 @@ dependencies = [
     "flask-cors>=5.0.0",
     "groq>=0.31.0",
     "requests>=2.31.0",
-    "openai<=1.99.9", # Pin due to litellm incompatibility with >=1.100.0
+    "openai<=1.99.9",      # Pin due to litellm incompatibility with >=1.100.0
     "fastapi>=0.116.1",
     "orjson>=3.11.2",
     "litellm>=1.75.3",
@@ -22,3 +26,13 @@ dependencies = [
 markers = [
     "integration: marks tests as integration tests (slow, requires network)",
 ]
+
+[project.scripts]
+backend-serve = "backend.app:main"
+
+[tool.setuptools]
+package-dir = { "" = "src" } # packages live under src/
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["backend*"] # discover backend and any subpackages
