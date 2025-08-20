@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useRef } from 'react';
 import gutenbergLogo from './assets/pg-logo.png';
 import GraphView from './components/GraphView.jsx';
 import ThemeToggle from './components/ThemeToggle.jsx';
@@ -9,13 +9,14 @@ function App() {
     const [bookId, setBookId] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
-    const [results, setResults] = useState(null);
+    const [results, setResults] = useState({ nodes: [], links: [] });
     const stats = useMemo(() => (results ? deriveStats(results) : null), [results]);
+    const abortRef = useRef(null);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
-        setResults(null);
+        setResults({ nodes: [], links: [] });
 
         const id = (bookId || '').trim();
         if (!id || !/^\d+$/.test(id)) {
@@ -25,15 +26,29 @@ function App() {
 
         try {
             setLoading(true);
-            const res = await fetch(`http://127.0.0.1:5001/api/analyze/${id}`);
+            const controller = new AbortController();
+            abortRef.current = controller;
+            const res = await fetch(`http://127.0.0.1:5001/api/analyze/${id}`, { signal: controller.signal });
             const data = await res.json();
             if (!res.ok || data.error) throw new Error(data.error || 'Failed to analyze the book.');
+
+            if (!Array.isArray(data.nodes) || !Array.isArray(data.links)) {
+                throw new Error('Analysis failed: The server returned an invalid data format.');
+            }
+
             setResults(data); // { nodes: [...], links: [...] }
         } catch (err) {
             setError(err.message || 'Something went wrong.');
         } finally {
             setLoading(false);
+            abortRef.current = null;
         }
+    };
+
+    const cancel = () => {
+        abortRef.current?.abort();
+        abortRef.current = null;
+        setLoading(false);
     };
 
     return (
@@ -62,14 +77,24 @@ function App() {
                     className="input"
                 />
 
-                <button
-                    type="submit"
-                    disabled={loading}
-                    className="btn mx-auto block"
-                >
-                    {loading ? 'Analyzing…' : 'Analyze'}
-                </button>
+                <div className="flex gap-2 justify-center">
+                    <button type="submit" disabled={loading} className="btn">
+                        {loading ? 'Analyzing…' : 'Analyze'}
+                    </button>
+                    {loading && (
+                        <button type="button" onClick={cancel} className="btn btn-ghost">
+                            Cancel
+                        </button>
+                    )}
+                </div>
             </form>
+
+            {loading && (
+                <div className="flex items-center gap-2 text-sm opacity-80">
+                    <span className="animate-spin inline-block h-4 w-4 border-2 border-current border-t-transparent rounded-full" />
+                    <span>Running analysis…</span>
+                </div>
+            )}
 
             {error && (
                 <div className="rounded border p-3">
@@ -77,7 +102,7 @@ function App() {
                 </div>
             )}
 
-            {results && (
+            {results && results.nodes.length > 0 && (
                 <div className="card space-y-4">
                     <p>
                         Nodes: <strong>{results.nodes?.length ?? 0}</strong> • Links:{' '}
