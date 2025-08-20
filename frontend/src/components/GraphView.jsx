@@ -6,6 +6,48 @@ export default function GraphView({ data, className = '' }) {
     const ref = useRef(null);
     const fgRef = useRef();
     const [size, setSize] = useState({ w: 0, h: 0 });
+    const [hoverNode, setHoverNode] = useState(null);
+    const [hoverLink, setHoverLink] = useState(null);
+
+    // helper for id extraction
+    const idOf = useCallback((x) => (typeof x === 'object' ? x.id : x), []);
+
+    // sentiment palette: red (neg) → gray (neu) → green (pos)
+    const sentimentColor = useCallback((s) => {
+        if (s == null) return '#9ca3af';
+        if (s > 0.2) return '#22c55e';
+        if (s < -0.2) return '#ef4444';
+        return '#a3a3a3';
+    }, []);
+
+    // Node-level average sentiment (for node-only hover) — computed from incident links
+    const nodeAvgSentiment = useMemo(() => {
+        const sum = new Map();
+        const cnt = new Map();
+        if (!data?.links) return new Map();
+        for (const l of data.links) {
+            const a = idOf(l.source), b = idOf(l.target);
+            const s = typeof l.sentiment_score === 'number' ? l.sentiment_score : 0;
+            sum.set(a, (sum.get(a) || 0) + s); cnt.set(a, (cnt.get(a) || 0) + 1);
+            sum.set(b, (sum.get(b) || 0) + s); cnt.set(b, (cnt.get(b) || 0) + 1);
+        }
+        const avg = new Map();
+        for (const [k, s] of sum.entries()) {
+            avg.set(k, s / (cnt.get(k) || 1));
+        }
+        return avg;
+    }, [data, idOf]);
+
+    // Is this link currently highlighted?
+    const isLinkHighlighted = useCallback((l) => {
+        if (!l) return false;
+        if (hoverLink === l) return true;
+        if (hoverNode) {
+            const s = idOf(l.source), t = idOf(l.target);
+            return s === hoverNode.id || t === hoverNode.id;
+        }
+        return false;
+    }, [hoverLink, hoverNode, idOf]);
 
     // Read CSS vars once per render (fast) with safe fallbacks
     const cssVar = useCallback((name, fallback) => {
@@ -76,7 +118,7 @@ export default function GraphView({ data, className = '' }) {
         });
 
         // Repel a bit
-        g.d3Force('charge').strength(-350).distanceMax(600);
+        g.d3Force('charge').strength(-350).distanceMax(400);
 
         // Collision radius ~ half-diagonal of rounded-rect + small margin
         const rectRadius = (n) => {
@@ -84,7 +126,7 @@ export default function GraphView({ data, className = '' }) {
             const h = Math.max(minH, 14 + padY * 2); // ~FONT_BASE + pads
             return Math.hypot(w, h) / 2 + 8;
         };
-        g.d3Force('collide', forceCollide().radius(rectRadius).iterations(3).strength(1));
+        g.d3Force('collide', forceCollide().radius(rectRadius).iterations(1).strength(1));
 
         g.d3ReheatSimulation();
     }, [data]);
@@ -123,12 +165,19 @@ export default function GraphView({ data, className = '' }) {
                 onEngineStop={handleEngineStop}
 
                 // Visuals (from CSS vars)
-                backgroundColor={theme.graphBg}
-                nodeLabel={(n) => String(n.val ?? n.id)}
-                linkColor={(l) => l.color || theme.stroke}
-                linkWidth={(l) => l.width ?? 2}
+                backgroundColor={'--graph-bg'}
+                nodeLabel={(n) => String(n.id)}
 
-                // Replace default node with a labeled rounded rectangle
+                // Sentiment-aware highlighting for links
+                linkColor={(l) => (isLinkHighlighted(l) ? sentimentColor(l.sentiment_score) : theme.stroke)}
+                linkWidth={(l) => 1 + Math.log2(1 + (l.count ?? 1)) * 2}
+                linkLabel={(l) => {
+                    const s = typeof l.sentiment_score === 'number' ? l.sentiment_score : null;
+                    const sText = s == null ? 'unknown' : `${s.toFixed(2)} ${s > 0.2 ? '(pos)' : s < -0.2 ? '(neg)' : '(neu)'}`;
+                    return `${l.count ?? 1} interactions • sentiment: ${sText}`;
+                }}
+
+                // Replace node drawing; add sentiment-colored outline on highlight
                 nodeCanvasObjectMode={() => 'replace'}
                 nodeCanvasObject={(node, ctx, globalScale) => {
                     const label = String(node.id);
@@ -148,18 +197,40 @@ export default function GraphView({ data, className = '' }) {
                     const x = node.x - w / 2;
                     const y = node.y - h / 2;
 
-                    const fill = node.color || theme.nodeFill;
-                    const stroke = theme.stroke;
+                    // Is this node part of the current highlight context?
+                    const nodeHighlighted =
+                        (hoverNode && hoverNode === node) ||
+                        (hoverLink && (idOf(hoverLink.source) === node.id || idOf(hoverLink.target) === node.id));
 
-                    // draw rounded rect
+                    // choose outline color: hovered link sentiment when available, else node avg
+                    const outlineSent =
+                        hoverLink && (idOf(hoverLink.source) === node.id || idOf(hoverLink.target) === node.id)
+                            ? hoverLink.sentiment_score
+                            : nodeAvgSentiment.get(node.id);
+                    const outlineColor = sentimentColor(outlineSent);
+
+                    // draw rounded rect body
                     roundRect(ctx, x, y, w, h, 6);
-                    ctx.fillStyle = fill;
+                    ctx.fillStyle = node.color || theme.nodeFill;
                     ctx.fill();
                     ctx.lineWidth = Math.max(1, 1.2 / globalScale);
-                    ctx.strokeStyle = stroke;
+                    ctx.strokeStyle = theme.stroke;
                     ctx.stroke();
 
-                    // draw text
+                    // extra sentiment outline on highlight
+                    if (nodeHighlighted) {
+                        ctx.save();
+                        ctx.lineWidth = Math.max(2, 2.5 / globalScale);
+                        ctx.strokeStyle = outlineColor;
+                        // soft glow
+                        ctx.shadowColor = outlineColor;
+                        ctx.shadowBlur = 10;
+                        roundRect(ctx, x, y, w, h, 6);
+                        ctx.stroke();
+                        ctx.restore();
+                    }
+
+                    // label
                     ctx.textAlign = 'center';
                     ctx.textBaseline = 'middle';
                     ctx.fillStyle = theme.text;
@@ -179,6 +250,10 @@ export default function GraphView({ data, className = '' }) {
                     ctx.fillStyle = color;
                     ctx.fillRect(x, y, w, h);
                 }}
+
+                // Hover handlers
+                onNodeHover={(n) => { setHoverNode(n || null); if (n) setHoverLink(null); }}
+                onLinkHover={(l) => { setHoverLink(l || null); if (l) setHoverNode(null); }}
             />
 
             {/* Reset button overlay */}
