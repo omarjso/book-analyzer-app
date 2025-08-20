@@ -1,10 +1,9 @@
-import json
 from collections import Counter, defaultdict
 
 import requests
-from flask import Flask, jsonify, Response
-from flask_cors import CORS
+from flask import Flask, Response, jsonify
 from flask_caching import Cache
+from flask_cors import CORS
 
 from backend.analyzer import analyze_chunk
 
@@ -65,6 +64,7 @@ def analyze_book(book_id) -> Response:
     link_counts = defaultdict(int)
     pair_sentiment_sum = defaultdict(float)
 
+    # TODO: merging chunks could be handled by the LLM to resolve character aliases
     for chunk in chunks:
         analysis = analyze_chunk(chunk)
         for c in analysis.characters:
