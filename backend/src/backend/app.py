@@ -8,6 +8,9 @@ from flask_caching import Cache
 
 from backend.analyzer import analyze_chunk
 
+MAX_CHAR_TO_ANALYZE = 20000
+CHUNK_SIZE = 2000
+
 
 def content_url(book_id):
     return f"https://www.gutenberg.org/files/{book_id}/{book_id}-0.txt"
@@ -50,52 +53,48 @@ def analyze_book(book_id) -> Response:
     if resp.status_code != 200:
         return resp
 
-    data = resp.get_json()
-    content = data["content"]
-    sample_text = content[:20000]
+    content = resp.get_json()["content"]
+    sample_text = content[:MAX_CHAR_TO_ANALYZE]
 
-    chunk_size = 2000
+    chunk_size = CHUNK_SIZE
     chunks = [
         sample_text[i : i + chunk_size] for i in range(0, len(sample_text), chunk_size)
     ]
 
     character_counts = Counter()
     link_counts = defaultdict(int)
-    sentiment_sum = defaultdict(float)
-    num_interactions = defaultdict(int)
+    pair_sentiment_sum = defaultdict(float)
 
     for chunk in chunks:
         analysis = analyze_chunk(chunk)
         for c in analysis.characters:
-            character_counts[c] += 1
+            k = c.strip().lower()
+            if k:
+                character_counts[k] += 1
 
         for it in analysis.interactions:
-            a, b = it.source, it.target
+            a = it.source.strip().lower()
+            b = it.target.strip().lower()
             if not a or not b or a == b:
                 continue
             key = tuple(sorted((a, b)))
             link_counts[key] += 1
-            sentiment_sum[key] += it.sentiment_score
-            num_interactions[key] += 1
+            pair_sentiment_sum[key] += float(it.sentiment_score or 0.0)
 
-    nodes = [{"id": name, "value": count} for name, count in character_counts.items()]
+    nodes = [
+        {"id": name, "name": name, "value": count}
+        for name, count in character_counts.items()
+    ]
 
     links = []
     for (a, b), cnt in link_counts.items():
         if a in character_counts and b in character_counts:
-            n = num_interactions[(a, b)]
-            avg = (sentiment_sum[(a, b)] / n) if n else None
+            avg = (pair_sentiment_sum[(a, b)] / cnt) if cnt else None
             links.append(
                 {"source": a, "target": b, "count": cnt, "sentiment_score": avg}
             )
 
-    ranking = sorted(
-        [{"id": n, "count": c} for n, c in character_counts.items()],
-        key=lambda x: x["count"],
-        reverse=True,
-    )
-
-    return jsonify({"nodes": nodes, "links": links, "ranking": ranking})
+    return jsonify({"nodes": nodes, "links": links})
 
 
 def main():
