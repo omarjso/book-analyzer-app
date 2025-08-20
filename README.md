@@ -8,7 +8,10 @@ A take-home project that analyzes characters and interactions in Gutenberg books
 
 ➡️ See [backend/README.md](backend/README.md) for API documentation
 
-## Demo Screenshots
+## Demo
+
+0. **Loom**
+   [Here is a quick demo video with Loom](https://www.loom.com/share/a0137725f55c41d3a97b5bfac26c0159?sid=cf12648d-d082-4262-88f7-69becd070440)
 
 1. **Graph with sentiment hover**
 

@@ -8,8 +8,8 @@ from flask_cors import CORS
 
 from backend.analyzer import analyze_chunk
 
-MAX_CHAR_TO_ANALYZE = 20000
-CHUNK_SIZE = 2000
+MAX_CHAR_TO_ANALYZE = 10_000
+CHUNK_SIZE = 5_000
 
 
 def content_url(book_id):
