@@ -40,7 +40,7 @@ export default function RankingTable({ rows }) {
                             <td className="px-3 py-2">{r.id}</td>
                             <td className="px-3 py-2 text-right">{r.appearances ?? 0}</td>
                             <td className="px-3 py-2 text-right">{r.interactions ?? 0}</td>
-                            <td className="px-3 py-2 text-right"><SentimentBadge value={r.avgSentiment} /></td>
+                            <td className="px-3 py-2 text-right whitespace-nowrap"><SentimentBadge value={r.avgSentiment} /></td>
                         </tr>
                     ))}
                 </tbody>
