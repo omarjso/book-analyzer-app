@@ -1,3 +1,4 @@
+import os
 from collections import Counter, defaultdict
 
 import requests
@@ -98,7 +99,9 @@ def analyze_book(book_id) -> Response:
 
 
 def main():
-    app.run(debug=True, port=5001)
+    """Entry point for local development only."""
+    port = int(os.getenv("PORT", 5001))
+    app.run(host="0.0.0.0", port=port, debug=True)
 
 
 if __name__ == "__main__":

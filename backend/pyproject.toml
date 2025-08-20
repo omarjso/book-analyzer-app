@@ -30,7 +30,8 @@ markers = [
 ]
 
 [project.scripts]
-backend-serve = "backend.app:main"
+backend-dev = "backend.app:main"
+backend-prod = "backend.app:app"
 
 [tool.setuptools]
 package-dir = { "" = "src" } # packages live under src/

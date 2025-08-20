@@ -5,6 +5,8 @@ import ThemeToggle from './components/ThemeToggle.jsx';
 import RankingTable from './components/RankingTable.jsx';
 import { deriveStats } from './lib/deriveStats.js';
 
+const API_BASE = import.meta.env.VITE_API_BASE;
+
 function App() {
     const [bookId, setBookId] = useState('');
     const [loading, setLoading] = useState(false);
@@ -28,7 +30,7 @@ function App() {
             setLoading(true);
             const controller = new AbortController();
             abortRef.current = controller;
-            const res = await fetch(`http://127.0.0.1:5001/api/analyze/${id}`, { signal: controller.signal });
+            const res = await fetch(`${API_BASE}/api/analyze/${id}`, { signal: controller.signal });
             const data = await res.json();
             if (!res.ok || data.error) throw new Error(data.error || 'Failed to analyze the book.');
 
