@@ -34,6 +34,16 @@ def health_check():
 @app.route("/api/book/<int:book_id>")
 @cache.cached(timeout=3600)
 def get_book(book_id) -> Response:
+    """
+    Fetch raw book text from Project Gutenberg.
+
+    Args:
+        book_id (int): Gutenberg book ID.
+
+    Returns:
+        Flask Response with JSON { "content": text } if successful,
+        or { "error": ... } with 404 if failed.
+    """
     try:
         r = requests.get(content_url(book_id))
         r.raise_for_status()
@@ -49,6 +59,22 @@ def get_book(book_id) -> Response:
 @app.route("/api/analyze/<int:book_id>")
 @cache.cached(timeout=86400)
 def analyze_book(book_id) -> Response:
+    """
+    Analyze a Gutenberg book for characters and interactions.
+
+    Steps:
+    - Fetch the book text.
+    - Split into chunks.
+    - Run analyzer on each chunk.
+    - Aggregate character counts, interactions, and sentiment scores.
+
+    Returns:
+        Flask Response with JSON:
+        {
+          "nodes": [{ "id": str, "name": str, "value": int }],
+          "links": [{ "source": str, "target": str, "count": int, "sentiment_score": float }]
+        }
+    """
     resp = get_book(book_id)
     if resp.status_code != 200:
         return resp
