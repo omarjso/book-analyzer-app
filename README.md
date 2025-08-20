@@ -43,6 +43,7 @@ uv run backend-dev   # Flask dev server on http://127.0.0.1:5001
 cd frontend
 npm install
 npm run dev   # Vite dev server on http://127.0.0.1:5173
+npm run tw:watch   # compile Tailwind CSS into public/ and keep watching
 ```
 
 ---
