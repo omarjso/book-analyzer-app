@@ -1,0 +1,4 @@
+{
+  "buildCommand": "npm run tw:build && npm run build",
+  "outputDirectory": "dist"
+}
