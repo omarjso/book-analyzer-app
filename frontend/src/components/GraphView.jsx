@@ -152,6 +152,7 @@ export default function GraphView({ data, stats, className = '' }) {
                 cooldownTicks={0}
                 cooldownTime={0}
                 onEngineStop={handleEngineStop}
+                enableZoomInteraction={false}   // disables wheel zoom (not handled correctly)
 
                 // Visuals (from CSS vars)
                 backgroundColor={'--graph-bg'}
