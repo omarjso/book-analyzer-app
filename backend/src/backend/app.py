@@ -1,5 +1,5 @@
 import json
-from collections import Counter
+from collections import Counter, defaultdict
 
 import requests
 from flask import Flask, jsonify, Response
@@ -59,33 +59,43 @@ def analyze_book(book_id) -> Response:
         sample_text[i : i + chunk_size] for i in range(0, len(sample_text), chunk_size)
     ]
 
-    all_interactions = []
     character_counts = Counter()
+    link_counts = defaultdict(int)
+    sentiment_sum = defaultdict(float)
+    num_interactions = defaultdict(int)
 
     for chunk in chunks:
-        try:
-            analysis_str = analyze_chunk(chunk)
-            # Sanity check to ensure the analysis_str is valid JSON
-            start = analysis_str.find("{")
-            end = analysis_str.rfind("}") + 1
-            if start != -1 and end != -1:
-                analysis_json = json.loads(analysis_str[start:end])
-                for char in analysis_json.get("characters", []):
-                    character_counts[char] += 1
-                all_interactions.extend(analysis_json.get("interactions", []))
-        except (json.JSONDecodeError, AttributeError) as e:
-            print(f"Skipping a chunk due to parsing error: {e}")
-            continue
+        analysis = analyze_chunk(chunk)
+        for c in analysis.characters:
+            character_counts[c] += 1
+
+        for it in analysis.interactions:
+            a, b = it.source, it.target
+            if not a or not b or a == b:
+                continue
+            key = tuple(sorted((a, b)))
+            link_counts[key] += 1
+            sentiment_sum[key] += it.sentiment_score
+            num_interactions[key] += 1
 
     nodes = [{"id": name, "value": count} for name, count in character_counts.items()]
 
-    links = [
-        {"source": i[0], "target": i[1]}
-        for i in all_interactions
-        if len(i) == 2 and i[0] in character_counts and i[1] in character_counts
-    ]
+    links = []
+    for (a, b), cnt in link_counts.items():
+        if a in character_counts and b in character_counts:
+            n = num_interactions[(a, b)]
+            avg = (sentiment_sum[(a, b)] / n) if n else None
+            links.append(
+                {"source": a, "target": b, "count": cnt, "sentiment_score": avg}
+            )
 
-    return jsonify({"nodes": nodes, "links": links})
+    ranking = sorted(
+        [{"id": n, "count": c} for n, c in character_counts.items()],
+        key=lambda x: x["count"],
+        reverse=True,
+    )
+
+    return jsonify({"nodes": nodes, "links": links, "ranking": ranking})
 
 
 def main():
