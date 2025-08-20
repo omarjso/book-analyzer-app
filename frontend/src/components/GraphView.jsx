@@ -1,5 +1,6 @@
 import { useRef, useEffect, useState, useCallback, useMemo } from 'react';
 import ForceGraph2D from 'react-force-graph-2d';
+import { forceCollide } from 'd3-force-3d';
 
 export default function GraphView({ data, className = '' }) {
     const ref = useRef(null);
@@ -52,6 +53,42 @@ export default function GraphView({ data, className = '' }) {
         });
     }, [handleResetView]);
 
+    // ---- Physics tuning incl. collision (to avoid node overlap)
+    useEffect(() => {
+        const g = fgRef.current;
+        if (!g || !data) return;
+
+        const charW = 7;
+        const minW = 120;
+        const padX = 12;
+        const minH = 50;
+        const padY = 8;
+
+        // Space links based on label sizes
+        g.d3Force('link').distance((l) => {
+            const sLen = String(l.source?.id ?? '').length;
+            const tLen = String(l.target?.id ?? '').length;
+            const sW = Math.max(minW, sLen * charW + padX * 2);
+            const tW = Math.max(minW, tLen * charW + padX * 2);
+            const base = 120;
+            const extra = 0.25 * (sW + tW);
+            return base + extra;
+        });
+
+        // Repel a bit
+        g.d3Force('charge').strength(-350).distanceMax(600);
+
+        // Collision radius ~ half-diagonal of rounded-rect + small margin
+        const rectRadius = (n) => {
+            const w = Math.max(minW, String(n.id).length * charW + padX * 2);
+            const h = Math.max(minH, 14 + padY * 2); // ~FONT_BASE + pads
+            return Math.hypot(w, h) / 2 + 8;
+        };
+        g.d3Force('collide', forceCollide().radius(rectRadius).iterations(3).strength(1));
+
+        g.d3ReheatSimulation();
+    }, [data]);
+
     // helper: rounded rect
     const roundRect = (ctx, x, y, w, h, r) => {
         const rr = Math.min(r, w / 2, h / 2);
@@ -80,7 +117,7 @@ export default function GraphView({ data, className = '' }) {
                 height={size.h || undefined}
 
                 // Cancel initial animation: pre-run offscreen & freeze
-                warmupTicks={120}
+                warmupTicks={150}
                 cooldownTicks={0}
                 cooldownTime={0}
                 onEngineStop={handleEngineStop}

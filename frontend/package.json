@@ -12,6 +12,7 @@
     "tw:build": "tailwindcss -i ./src/index.css -o ./public/tailwind.css"
   },
   "dependencies": {
+    "d3-force-3d": "^3.0.6",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "react-force-graph-2d": "^1.28.0"
