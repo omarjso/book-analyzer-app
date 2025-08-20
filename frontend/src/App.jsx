@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import gutenbergLogo from './assets/pg-logo.png';
+import GraphView from './components/GraphView.jsx';
+import ThemeToggle from './components/ThemeToggle.jsx';
 
 function App() {
     const [bookId, setBookId] = useState('');
@@ -78,6 +80,10 @@ function App() {
                         Nodes: <strong>{results.nodes?.length ?? 0}</strong> • Links:{' '}
                         <strong>{results.links?.length ?? 0}</strong>
                     </p>
+
+                    <div className="graph-shell p-0">
+                        <GraphView data={results} className="rounded-none border-0" />
+                    </div>
                     <details>
                         <summary className="cursor-pointer">Show raw JSON</summary>
                         <pre className="max-h-[50vh] overflow-auto text-sm">

@@ -20,6 +20,8 @@
   --input-brd:  #2a2a2a;
   --input-fg:   rgba(255,255,255,.92);
   --placeholder: rgba(255,255,255,.55);
+
+  --graph-bg:   #1f283b;
 }
 
 /* ---------- Light theme ---------- */
@@ -38,6 +40,8 @@ html.theme-light {
   --input-brd:  #e5e7eb;
   --input-fg:   #213547;
   --placeholder:#94a3b8;
+  
+  --graph-bg:   #5d6e88;
 }
 
 /* ---------- Base styles ---------- */
@@ -91,4 +95,11 @@ html.theme-light {
     color: var(--placeholder);
     opacity: 1; /* ensure the color you set is used */
   }
+}
+
+
+.graph-shell {
+    @apply rounded border;
+    background: var(--graph-bg);
+    border-color: var(--input-brd);
 }
