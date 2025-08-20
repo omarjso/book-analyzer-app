@@ -1,13 +1,16 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import gutenbergLogo from './assets/pg-logo.png';
 import GraphView from './components/GraphView.jsx';
 import ThemeToggle from './components/ThemeToggle.jsx';
+import RankingTable from './components/RankingTable.jsx';
+import { deriveStats } from './lib/deriveStats.js';
 
 function App() {
     const [bookId, setBookId] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [results, setResults] = useState(null);
+    const stats = useMemo(() => (results ? deriveStats(results) : null), [results]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -82,8 +85,16 @@ function App() {
                     </p>
 
                     <div className="graph-shell p-0">
-                        <GraphView data={results} className="rounded-none border-0" />
+                        <GraphView data={results} stats={stats} className="rounded-none border-0" />
                     </div>
+
+                    {stats && (
+                        <div className="space-y-2">
+                            <h2 className="text-base font-semibold">Character rankings</h2>
+                            <RankingTable rows={stats.rows} />
+                        </div>
+                    )}
+
                     <details>
                         <summary className="cursor-pointer">Show raw JSON</summary>
                         <pre className="max-h-[50vh] overflow-auto text-sm">

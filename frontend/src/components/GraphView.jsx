@@ -2,7 +2,7 @@ import { useRef, useEffect, useState, useCallback, useMemo } from 'react';
 import ForceGraph2D from 'react-force-graph-2d';
 import { forceCollide } from 'd3-force-3d';
 
-export default function GraphView({ data, className = '' }) {
+export default function GraphView({ data, stats, className = '' }) {
     const ref = useRef(null);
     const fgRef = useRef();
     const [size, setSize] = useState({ w: 0, h: 0 });
@@ -21,22 +21,8 @@ export default function GraphView({ data, className = '' }) {
     }, []);
 
     // Node-level average sentiment (for node-only hover) — computed from incident links
-    const nodeAvgSentiment = useMemo(() => {
-        const sum = new Map();
-        const cnt = new Map();
-        if (!data?.links) return new Map();
-        for (const l of data.links) {
-            const a = idOf(l.source), b = idOf(l.target);
-            const s = typeof l.sentiment_score === 'number' ? l.sentiment_score : 0;
-            sum.set(a, (sum.get(a) || 0) + s); cnt.set(a, (cnt.get(a) || 0) + 1);
-            sum.set(b, (sum.get(b) || 0) + s); cnt.set(b, (cnt.get(b) || 0) + 1);
-        }
-        const avg = new Map();
-        for (const [k, s] of sum.entries()) {
-            avg.set(k, s / (cnt.get(k) || 1));
-        }
-        return avg;
-    }, [data, idOf]);
+    const nodeAvgSentiment = useMemo(() => stats?.avgSentimentMap ?? new Map(), [stats]);
+    const nodeInteractions = useMemo(() => stats?.interactionsMap ?? new Map(), [stats]);
 
     // Is this link currently highlighted?
     const isLinkHighlighted = useCallback((l) => {
@@ -152,6 +138,9 @@ export default function GraphView({ data, className = '' }) {
             ref={ref}
             className={`relative w-full h-96 overflow-hidden rounded border ${className}`}
         >
+            <div className="pointer-events-none absolute top-2 left-2 text-xs opacity-80 px-2 py-1 rounded bg-black/40 text-white">
+                Hint: hover nodes/links to see sentiment • drag to pan
+            </div>
             <ForceGraph2D
                 ref={fgRef}
                 graphData={data}
@@ -166,7 +155,14 @@ export default function GraphView({ data, className = '' }) {
 
                 // Visuals (from CSS vars)
                 backgroundColor={'--graph-bg'}
-                nodeLabel={(n) => String(n.id)}
+                nodeLabel={(n) => {
+                    const id = String(n.id);
+                    const total = nodeInteractions.get(id) ?? 0;
+                    const s = nodeAvgSentiment.get(id);
+                    const tag = s == null ? 'unknown' : (s > 0.33 ? 'pos' : s < -0.33 ? 'neg' : 'neu');
+                    const sText = s == null ? tag : `${s.toFixed(2)} ${tag}`;
+                    return `${id} • ${total} interaction${total === 1 ? '' : 's'} • ${sText}`;
+                }}
 
                 // Sentiment-aware highlighting for links
                 linkColor={(l) => (isLinkHighlighted(l) ? sentimentColor(l.sentiment_score) : theme.stroke)}
