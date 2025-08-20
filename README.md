@@ -6,7 +6,7 @@ A take-home project that analyzes characters and interactions in Gutenberg books
 - **Backend:** Flask API with caching, deployed on Render
 - **LLM:** Backend uses [dspy](https://github.com/stanfordnlp/dspy) to structure prompts and [Groq](https://groq.com) for inference
 
-## ➡️ See [backend/README.md](backend/README.md) for API documentation
+➡️ See [backend/README.md](backend/README.md) for API documentation
 
 ## Demo Screenshots
 
