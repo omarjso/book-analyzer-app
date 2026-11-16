@@ -9,7 +9,7 @@ export default {
     strictPort: true,
     allowedHosts: process.env.NITESHIFT_PORT_5173_URL
       ? [new URL(process.env.NITESHIFT_PORT_5173_URL).hostname]
-      : [],
+      : ['.preview.niteshift.dev'],
     proxy: {
       '/api': 'http://127.0.0.1:5001',
     },
