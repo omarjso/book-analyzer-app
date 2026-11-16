@@ -1,0 +1,25 @@
+services:
+  # The first service with a port is the default preview.
+  - name: web
+    cwd: frontend
+    command: npm run dev -- --config ../.niteshift/files/vite.config.mjs
+    port: 5173
+    environment:
+      # An empty base uses Vite's same-origin /api proxy in the cloud preview.
+      - name: VITE_API_BASE
+        value: ""
+  - name: api
+    cwd: backend
+    command: venv/bin/backend-dev
+    port: 5001
+    environment:
+      - name: APP_ENV
+        value: development
+      # Health and book retrieval work without a key. After GROQ_API_KEY is
+      # saved in the Environment, enable this entry for real book analysis:
+      # - name: GROQ_API_KEY
+      #   secret: GROQ_API_KEY
+  - name: styles
+    cwd: frontend
+    # --watch=always keeps Tailwind watching without an interactive terminal.
+    command: node_modules/.bin/tailwindcss -i ./src/index.css -o ./public/tailwind.css --watch=always
