@@ -22,4 +22,4 @@ services:
   - name: styles
     cwd: frontend
     # --watch=always keeps Tailwind watching without an interactive terminal.
-    command: npm run tw:watch -- --watch=always
+    command: node_modules/.bin/tailwindcss -i ./src/index.css -o ./public/tailwind.css --watch=always
